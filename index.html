@@ -1,0 +1,432 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interval Trainer</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --ui-bg: #1e1e1e;
+            --ui-border: #333333;
+            --text-main: #e0e0e0;
+            --text-muted: #aaaaaa;
+            --accent-start: #2e7d32;
+            --accent-stop: #c62828;
+            --accent-blue: #1565c0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Display Area */
+        .display-card {
+            background-color: var(--ui-bg);
+            border: 2px solid var(--ui-border);
+            border-radius: 12px;
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .interval-display {
+            font-weight: bold;
+            color: #ffffff;
+            transition: font-size 0.2s ease;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        /* Font sizes */
+        .size-1 { font-size: 3rem; }
+        .size-2 { font-size: 4.5rem; }
+        .size-3 { font-size: 6rem; }
+        .size-4 { font-size: 7.5rem; }
+        .size-5 { font-size: 9rem; }
+
+        /* UI Controls Card */
+        .controls-card {
+            background-color: var(--ui-bg);
+            border: 1px solid var(--ui-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Action Buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.1s, transform 0.05s;
+            color: white;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #startBtn { background-color: var(--accent-start); }
+        #startBtn:hover { background-color: #388e3c; }
+        #startBtn:disabled { background-color: #1b5e20; opacity: 0.5; cursor: not-allowed; }
+
+        #stopBtn { background-color: var(--accent-stop); }
+        #stopBtn:hover { background-color: #d32f2f; }
+        #stopBtn:disabled { background-color: #b71c1c; opacity: 0.5; cursor: not-allowed; }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="number"], select {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        /* Checkboxes Matrix */
+        .checkbox-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .error-message {
+            color: #ff5252;
+            font-size: 0.85rem;
+            font-weight: bold;
+            min-height: 18px;
+            text-align: center;
+        }
+
+        .grid-intervals {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .checkbox-container {
+            position: relative;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            display: block;
+            text-align: center;
+            padding: 10px 0;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease;
+            font-size: 0.95rem;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--accent-blue);
+            border-color: #1e88e5;
+            color: white;
+            box-shadow: 0 0 8px rgba(21, 101, 192, 0.4);
+        }
+
+        /* Utility classes */
+        .disabled-ui {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="display-card">
+            <div id="intervalDisplay" class="interval-display size-3">--</div>
+        </div>
+
+        <div class="controls-card">
+            
+            <div class="btn-group">
+                <button id="startBtn">START</button>
+                <button id="stopBtn" disabled>STOP</button>
+            </div>
+
+            <div id="errorMsg" class="error-message"></div>
+
+            <div class="settings-grid" id="configGrid">
+                <div class="control-group">
+                    <label for="timeInput">Interval (sec)</label>
+                    <input type="number" id="timeInput" value="2.0" min="0.1" max="10" step="0.1">
+                </div>
+                
+                <div class="control-group">
+                    <label for="sizeSelect">Font Size</label>
+                    <select id="sizeSelect">
+                        <option value="size-1">Size 1 (Small)</option>
+                        <option value="size-2">Size 2</option>
+                        <option value="size-3" selected>Size 3 (Medium)</option>
+                        <option value="size-4">Size 4</option>
+                        <option value="size-5">Size 5 (Large)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="checkbox-section" id="intervalsSection">
+                <label>Select Intervals (Min 2)</label>
+                <div class="grid-intervals">
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="1" checked>
+                        <span class="checkmark">1</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="b2" checked>
+                        <span class="checkmark">b2</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="2" checked>
+                        <span class="checkmark">2</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="b3" checked>
+                        <span class="checkmark">b3</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="3" checked>
+                        <span class="checkmark">3</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="4" checked>
+                        <span class="checkmark">4</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="b5" checked>
+                        <span class="checkmark">b5</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="5" checked>
+                        <span class="checkmark">5</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="b6" checked>
+                        <span class="checkmark">b6</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="6" checked>
+                        <span class="checkmark">6</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="b7" checked>
+                        <span class="checkmark">b7</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" value="7" checked>
+                        <span class="checkmark">7</span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const display = document.getElementById('intervalDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const timeInput = document.getElementById('timeInput');
+        const sizeSelect = document.getElementById('sizeSelect');
+        const errorMsg = document.getElementById('errorMsg');
+        const configGrid = document.getElementById('configGrid');
+        const intervalsSection = document.getElementById('intervalsSection');
+        const checkboxes = document.querySelectorAll('.grid-intervals input[type="checkbox"]');
+
+        // State Variables
+        let intervalId = null;
+        let masterIntervals = []; // Pools of chosen intervals
+        let currentPool = [];     // Shuffled active deck
+        let lastDisplayed = null; // Guard against repetitions across round transitions
+
+        // Change Font Size Dynamically
+        sizeSelect.addEventListener('change', (e) => {
+            display.className = 'interval-display ' + e.target.value;
+        });
+
+        // Get checked interval values
+        function getSelectedIntervals() {
+            const selected = [];
+            checkboxes.forEach(cb => {
+                if (cb.checked) selected.push(cb.value);
+            });
+            return selected;
+        }
+
+        // Fisher-Yates Shuffle Algorithm
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Generate a fresh pool, ensuring no immediate repetition from the last pool
+        function generateNewPool() {
+            let newPool = shuffleArray(masterIntervals);
+            
+            // If the first element of the new pool matches the last displayed element,
+            // reshuffle or swap to prevent immediate double visual presentation.
+            if (newPool.length > 1 && newPool[0] === lastDisplayed) {
+                // Find an alternative index to swap the first element with
+                const swapIndex = Math.floor(Math.random() * (newPool.length - 1)) + 1;
+                [newPool[0], newPool[swapIndex]] = [newPool[swapIndex], newPool[0]];
+            }
+            
+            return newPool;
+        }
+
+        // Main logic to shift from the dynamic pool
+        function nextInterval() {
+            if (masterIntervals.length < 2) return;
+
+            // If the pool is empty, generate a brand new randomized pool
+            if (currentPool.length === 0) {
+                currentPool = generateNewPool();
+            }
+
+            // Pull the top interval from the shuffled pool
+            const picked = currentPool.shift();
+            lastDisplayed = picked;
+            
+            display.textContent = picked;
+        }
+
+        // Start Training Loop
+        startBtn.addEventListener('click', () => {
+            errorMsg.textContent = '';
+
+            // 1. Validate Checkbox Count
+            masterIntervals = getSelectedIntervals();
+            if (masterIntervals.length < 2) {
+                errorMsg.textContent = 'Error: At least 2 intervals must be selected!';
+                return;
+            }
+
+            // 2. Validate Timing Constraints
+            let speed = parseFloat(timeInput.value);
+            if (isNaN(speed) || speed < 0.1 || speed > 10) {
+                errorMsg.textContent = 'Error: Time must be between 0.1 and 10 seconds.';
+                return;
+            }
+
+            // Lock UI controls during playback
+            configGrid.classList.add('disabled-ui');
+            intervalsSection.classList.add('disabled-ui');
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            // Reset pooling engine states
+            currentPool = [];
+            lastDisplayed = null;
+
+            // Trigger the first interval immediately, then start loop
+            nextInterval();
+            intervalId = setInterval(nextInterval, speed * 1000);
+        });
+
+        // Stop Training Loop
+        stopBtn.addEventListener('click', () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+
+            // Reset and unlock UI controls
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            configGrid.classList.remove('disabled-ui');
+            intervalsSection.classList.remove('disabled-ui');
+            
+            display.textContent = '--';
+            lastDisplayed = null;
+            currentPool = [];
+        });
+    </script>
+</body>
+</html>
